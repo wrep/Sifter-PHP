@@ -19,8 +19,23 @@ class Issues
     {
         $endpoint = "/api/projects/" . $this->id . "/issues";
         $issues = Request::make($endpoint, $this->params + $params);
+
+        $allIssues = $issues['issues'];
+
+        if ($issues['total_pages'] > 1)
+        {
+            $current_page = 2;
+
+            for($i = $current_page; $i <= $issues['total_pages']; $i++)
+            {
+                $issues = Request::make($endpoint, $this->params + $params + array('page' => $i, 'per_page' => 100));
+                $allIssues = array_merge($allIssues, $issues['issues']);
+            }
+        }
+
         $this->params = array();
-        return Resource::make($issues['issues']);
+
+        return Resource::make($allIssues);
     }
 
     public function __call($name, $args)
